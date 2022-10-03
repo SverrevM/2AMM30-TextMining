@@ -12,7 +12,7 @@ wn_lemmatizer = WordNetLemmatizer()
 sw = stopwords.words('english')
 """ 
 REMARKS:
-
+Create a folder called preprocessed with subfolders 'AA' and 'AB'
 * words like game_77 now have become game77
 * no punctuation left, so can't distinguish sentences anymore
 * words that were put into parenthese and that included stopwords are treated like all the other words, 
