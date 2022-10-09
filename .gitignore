@@ -1,5 +1,6 @@
 # Locally stored processed files
 local_storage/
+.preprocessed_file_wiki_00
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
