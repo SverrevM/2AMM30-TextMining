@@ -1,6 +1,7 @@
 enwiki20220701-stripped
 preprocessed-rebel
 preprocessed-nltk
+models
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
