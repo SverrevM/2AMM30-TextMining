@@ -138,6 +138,8 @@ def preprocessing(path, pipeline):
         if (fields["text"] and 'PERSON' in title_entity_labels):
             # impute encodings
             fields["text"] = ftfy.fix_text(fields["text"])
+            # get rid of \xa0 - hard space or no-break space
+            fields["text"] = fields["text"].replace(u'\xa0', u' ')
             # expand contractions
             fields["text"] = expand_contractions(fields["text"], contraction_map)
             # remove punctuation
@@ -159,6 +161,7 @@ def preprocessing(path, pipeline):
     return final_dictionary   
 
 """
+        Function to apply preprocessing on a selection of files and store it in a separate folder
         - path: root folder (enwiki20220701-stripped), 
         - subf desired subfolder: AA or AB, must be passed as a string (e.g. "AA") 
         - files in subfolder AA: wiki_00 up till wiki_99
@@ -189,6 +192,7 @@ def preprocess_multiple_files(path, subf, start, end, pipeline): # (str, str, in
         if isfile(f):
             # process it
             p = preprocessing(f, pipeline)
+            #TODO: FIX WHY SPECIAL ENCODINGS ARE NOT FIXED WHEN STORING
             # create a new file in the preprocessed folder, and put it into the concerning subfolder (AA or AB)
             with open("preprocessed-{pipeline}/{subf}/p_{p}_wiki_{nr}".format(subf=subf, nr=i, pipeline=pipeline, p=pipeline[0]), 'w') as preprocessed_file:
                 preprocessed_file.write(json.dumps(p))
