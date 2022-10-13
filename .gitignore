@@ -1,5 +1,6 @@
 enwiki20220701-stripped
-preprocessed
+preprocessed-rebel
+preprocessed-nltk
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
