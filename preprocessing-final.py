@@ -1,3 +1,4 @@
+############################################################################### IMPORTS
 import os
 import spacy
 import ftfy
@@ -7,7 +8,7 @@ import re
 from os.path import isfile
 ############################################################################### INITIALIZING VARIABLES
 path = "enwiki20220701-stripped/"
-ner = spacy.load('en_core_web_sm', disable=['tagger', 'parser', 'attribute_ruler', 'lemmatizer']) 
+ner = spacy.load('en_core_web_sm', disable=['tagger', 'parser', 'attribute_ruler', 'lemmatizer'])
 nlp = spacy.load('en_core_web_sm') # for lemmatization and tokenization
 ############################################################################### RUN ONLY ONCE ELSE ERRORS
 # merge entities when tokenizing text
@@ -124,15 +125,13 @@ def expand_contractions(sent, mapping):
     expand_sent = pattern.sub(expand_map, sent)
     return expand_sent
 
-def preprocessing(path):
+def preprocessing(path, pipeline):
     file = open(path, 'r').readlines()
     final_dictionary = dict()
 
     for item in file:
         fields = json.loads(item)
         # get entity labels based on NER
-        first_paragraph = fields["text"].split('\n')[0]
-        paragraph_entity_labels = [ent.label_ for ent in ner(first_paragraph).ents]
         title_entity_labels = [ent.label_ for ent in ner(fields["title"]).ents]
 
         # only keep texts that are not empty and filter on people (in title)
@@ -144,9 +143,10 @@ def preprocessing(path):
             # remove punctuation
             fields["text"] = fields["text"].translate(str.maketrans('', '', string.punctuation))
 
-            # OPT: lemmatize (for NLTK pipeline)
-            fields["text"] = [w.lemma_ for w in nlp(fields["text"])]
-            fields["text"] = " ".join(fields["text"])
+            if pipeline == "nltk":
+            # OPT: lemmatize (for NLTK pipeline) 
+                fields["text"] = [w.lemma_ for w in nlp(fields["text"])]
+                fields["text"] = " ".join(fields["text"])
             
             # split article based on paragraphs into multiple entries in a new dictionary with their id: 1-1 (id=1, par=1) and so on. 
             custom_id = 1
@@ -154,11 +154,9 @@ def preprocessing(path):
             for par in text_split:
                 new_id = fields["id"] + "-" + str(custom_id)
                 final_dictionary[new_id] = par
-                custom_id = int(custom_id) + 1    
+                custom_id = int(custom_id) + 1 
 
     return final_dictionary   
-
-
 
 """
         - path: root folder (enwiki20220701-stripped), 
@@ -169,13 +167,15 @@ def preprocessing(path):
         - end: end number file, e.g. 0-99
         - the range is inclusive which means, e.g. with (0, 0) you select & pre-process file wiki_00,
         - with (32, 50) you select file wiki_32 up till wiki_50
+        - pipeline: pass "nltk" or "rebel" to indicate for which pipeline you would like to preprocess, diff. 
+          in preprocessing is the lemmatization. 
 """ 
-def preprocess_multiple_files(path, subf, start, end): # (str, str, int, int)
+def preprocess_multiple_files(path, subf, start, end, pipeline): # (str, str, int, int, str)
     # if the folder preprocessed with its subfolders AA and AB resp. do not exist, create them
-    if not os.path.exists("preprocessed/AA"):
-        os.makedirs("preprocessed/AA")
-    if not os.path.exists("preprocessed/AB"):
-        os.makedirs("preprocessed/AB")
+    if not os.path.exists("preprocessed-{pipeline}/AA".format(pipeline=pipeline)):
+        os.makedirs("preprocessed-{pipeline}/AA".format(pipeline=pipeline))
+    if not os.path.exists("preprocessed-{pipeline}/AB".format(pipeline=pipeline)):
+        os.makedirs("preprocessed-{pipeline}/AB".format(pipeline=pipeline))
 
     # from file start to end
     for i in range(start, end+1):
@@ -188,13 +188,14 @@ def preprocess_multiple_files(path, subf, start, end): # (str, str, int, int)
         # if file exists
         if isfile(f):
             # process it
-            p = preprocessing(f)
+            p = preprocessing(f, pipeline)
             # create a new file in the preprocessed folder, and put it into the concerning subfolder (AA or AB)
-            with open("preprocessed/{subf}/p_wiki_{nr}".format(subf=subf, nr=i), 'w') as preprocessed_file:
+            with open("preprocessed-{pipeline}/{subf}/p_{p}_wiki_{nr}".format(subf=subf, nr=i, pipeline=pipeline, p=pipeline[0]), 'w') as preprocessed_file:
                 preprocessed_file.write(json.dumps(p))
             preprocessed_file.close()
 
 ############################################################################## EXECUTION
 
+preprocess_multiple_files(path, "AA", 0, 1, "rebel")
 
-preprocess_multiple_files(path, "AA", 0, 0)
+
