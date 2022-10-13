@@ -4,9 +4,9 @@ import ftfy
 import string
 import json
 import re
-import pickle
+from os.path import isfile
 ############################################################################### INITIALIZING VARIABLES
-path = "enwiki20220701-stripped/AA/"
+path = "enwiki20220701-stripped/"
 ner = spacy.load('en_core_web_sm', disable=['tagger', 'parser', 'attribute_ruler', 'lemmatizer']) 
 nlp = spacy.load('en_core_web_sm') # for lemmatization and tokenization
 ############################################################################### RUN ONLY ONCE ELSE ERRORS
@@ -104,7 +104,7 @@ contraction_map={
     "you're": "you are",
     "you've": "you have",
 }
-###############################################################################
+############################################################################### METHODS
 def expand_contractions(sent, mapping):
     #pattern for matching contraction with their expansions
     pattern = re.compile('({})'.format('|'.join(mapping.keys())), flags=re.IGNORECASE|re.DOTALL)
@@ -124,8 +124,8 @@ def expand_contractions(sent, mapping):
     expand_sent = pattern.sub(expand_map, sent)
     return expand_sent
 
-def preprocessing(path, f):
-    file = open(path + f, 'r').readlines()
+def preprocessing(path):
+    file = open(path, 'r').readlines()
     final_dictionary = dict()
 
     for item in file:
@@ -135,8 +135,8 @@ def preprocessing(path, f):
         paragraph_entity_labels = [ent.label_ for ent in ner(first_paragraph).ents]
         title_entity_labels = [ent.label_ for ent in ner(fields["title"]).ents]
 
-        # only keep texts that are not empty and filter on people (in title or in first paragraph of the article)
-        if (fields["text"] and 'PERSON' in title_entity_labels) or ('PERSON' in paragraph_entity_labels):
+        # only keep texts that are not empty and filter on people (in title)
+        if (fields["text"] and 'PERSON' in title_entity_labels):
             # impute encodings
             fields["text"] = ftfy.fix_text(fields["text"])
             # expand contractions
@@ -159,14 +159,42 @@ def preprocessing(path, f):
     return final_dictionary   
 
 
-def createFile(dict):
-    with open("preprocessed/AA/p_%s" % f, 'w') as preprocessed_file:
-        preprocessed_file.write(json.dumps(dict))
-    preprocessed_file.close()
-############################################################################## WHEN ITERATING OVER MULTIPLE FILES   
-# for every file in the folder
-# for f in os.listdir(path):
-f = "wiki_00"
-d = preprocessing(path, f)
-createFile(d)
-##############################################################################
+
+"""
+        - path: root folder (enwiki20220701-stripped), 
+        - subf desired subfolder: AA or AB, must be passed as a string (e.g. "AA") 
+        - files in subfolder AA: wiki_00 up till wiki_99
+        - files in subfolder AB: wiki_00 up till wiki_68
+        - start: start number file, e.g. 0-99 (no need to fill in 00, 0 is fine)
+        - end: end number file, e.g. 0-99
+        - the range is inclusive which means, e.g. with (0, 0) you select & pre-process file wiki_00,
+        - with (32, 50) you select file wiki_32 up till wiki_50
+""" 
+def preprocess_multiple_files(path, subf, start, end): # (str, str, int, int)
+    # if the folder preprocessed with its subfolders AA and AB resp. do not exist, create them
+    if not os.path.exists("preprocessed/AA"):
+        os.makedirs("preprocessed/AA")
+    if not os.path.exists("preprocessed/AB"):
+        os.makedirs("preprocessed/AB")
+
+    # from file start to end
+    for i in range(start, end+1):
+        # to match the filename wiki_00 up till wiki_09 we add a zero in front of the number from user input if necessary
+        if i < 10:
+            i = "0" + str(i)
+
+        # construct path to file name that falls within range
+        f = path + subf + "/wiki_{}".format(i) 
+        # if file exists
+        if isfile(f):
+            # process it
+            p = preprocessing(f)
+            # create a new file in the preprocessed folder, and put it into the concerning subfolder (AA or AB)
+            with open("preprocessed/{subf}/p_wiki_{nr}".format(subf=subf, nr=i), 'w') as preprocessed_file:
+                preprocessed_file.write(json.dumps(p))
+            preprocessed_file.close()
+
+############################################################################## EXECUTION
+
+
+preprocess_multiple_files(path, "AA", 0, 0)
