@@ -154,12 +154,19 @@ def preprocessing(path, f):
             for par in text_split:
                 new_id = fields["id"] + "-" + str(custom_id)
                 final_dictionary[new_id] = par
-                custom_id = int(custom_id) + 1                  
-############################################################################## WHEN ITERATING OVER MULTIPLE FILES
-filename = 'wiki_00'
-d = preprocessing("enwiki20220701-stripped/AA/", filename)
-rootpath = "./"
-file_string = f"{rootpath}/preprocessed_file_{filename}"
-with open(file_string, 'wb') as f:
-    pickle.dump(d, f, pickle.HIGHEST_PROTOCOL)
+                custom_id = int(custom_id) + 1    
+
+    return final_dictionary   
+
+
+def createFile(dict):
+    with open("preprocessed/AA/p_%s" % f, 'w') as preprocessed_file:
+        preprocessed_file.write(json.dumps(dict))
+    preprocessed_file.close()
+############################################################################## WHEN ITERATING OVER MULTIPLE FILES   
+# for every file in the folder
+# for f in os.listdir(path):
+f = "wiki_00"
+d = preprocessing(path, f)
+createFile(d)
 ##############################################################################
