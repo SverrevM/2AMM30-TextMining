@@ -1,13 +1,3 @@
-# TODO: REMOVE LATER??
-"""
-Observations about REBEL:
-The REBEL model implementation suffers from being quite slow. On article ID 586 it is extremely slow and on article ID 12 it throws an error.
-This is likely due to the length of the texts being very long. In order to fix this we can do the following:
-    - Downscale each article to paragraph and/or sentence level.
-    - Filter on the whole set of articles to limit the overall lengths on all articles to some maximum number of words/characters.
-
-"""
-
 ############################################################################### IMPORTS
 import requests
 import re
@@ -169,7 +159,6 @@ def coreff(par):
         - with (32, 50) you select file wiki_32 up till wiki_50
 """ 
 def rel_extraction_mul_files(path, subf=None, start=None, end=None):
-    # TODO:SPECIAL CHARACTERS ARE NOT CORRECTLY STORED IN PREPROCESSED FILE UPON WRITING
     if subf:
         # from file start to end
         for i in range(start, end+1):
@@ -181,23 +170,26 @@ def rel_extraction_mul_files(path, subf=None, start=None, end=None):
             
             # if file exists
             if isfile(f):
-                # TODO: OPEN FILE, GO THROUGH EACH PARAGRAPH AND PASS THAT INTO COREF FUNCTION
-                file = open(f, 'r')
+                # OPEN FILE, GO THROUGH EACH SEN AND PASS THAT INTO COREF FUNCTION
+                file = open(f, 'r', encoding='utf-8')
                 doc = json.load(file)
-                for key in doc:
-                    print(key)
-                    par = doc[key]
-                    coreff(par) # TODO: NOT WORKING
+                for k, v in doc.items():
+                    v = ftfy.fix_text(v) # FIX ANY ENCODINGS
+                    # if paragraph has more than one word
+                    if len(v.split(" ")) > 1:
+                        coreff(doc[k])
+                        #TODO: FORMAT OUTPUT -> KADIR
     else:
         for f in glob.glob('preprocessed-rebel/*/*'):
-            # TODO: OPEN EACH FILE, GO THROUGH EACH PARAGRAPH AND PASS THAT INTO COREF FUNC
-            pass
+            # OPEN EACH FILE, GO THROUGH EACH PARAGRAPH AND PASS THAT INTO COREF FUNC
+            file = open(f, 'r', encoding='utf-8')
+            doc = json.load(file)
+            for k, v in doc.items():
+                v = ftfy.fix_text(v) # FIX ANY ENCODINGS
+                # if paragraph has more than one word
+                if len(v.split(" ")) > 1:
+                    coreff(doc[k])
+                    #TODO: FORMAT OUTPUT -> KADIR
 ############################################################################ EXECUTION
 # OPT 1: SELECT SPECIFIC FILES TO FEED REBEL IN ONE PARTICULAR MAP / # OPT 2: FEED ALL FILES, in AA and AB BY ONLY KEEPING PATH IN THERE
-rel_extraction_mul_files(path, "AA", 0, 0)
-
-# one-file only
-# file = open(path + "AA" + "/p_r_wiki_00", 'r')
-# doc = json.load(file)
-# one_par = doc['344-1']
-# coreff(one_par)
+rel_extraction_mul_files(path, "AA", 0, 0) # rel_extraction_mul_files(path)
