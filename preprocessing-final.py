@@ -8,6 +8,7 @@ import re
 from os.path import isfile
 ############################################################################### INITIALIZING VARIABLES
 path = "enwiki20220701-stripped/"
+# NOTES ON EN CORE WEB SM -> python -m spacy download en_core_web_sm
 ner = spacy.load('en_core_web_sm', disable=['tagger', 'parser', 'attribute_ruler', 'lemmatizer'])
 nlp = spacy.load('en_core_web_sm') # for lemmatization and tokenization
 ############################################################################### RUN ONLY ONCE ELSE ERRORS
@@ -201,6 +202,6 @@ def preprocess_multiple_files(path, subf, start, end, pipeline): # (str, str, in
 
 ############################################################################## EXECUTION
 
-preprocess_multiple_files(path, "AA", 0, 1, "nltk")
+preprocess_multiple_files(path, "AA", 0, 1, "rebel")
 
 
