@@ -144,10 +144,12 @@ def preprocessing(path, pipeline):
             fields["text"] = expand_contractions(fields["text"], contraction_map)
 
             if pipeline == "nltk":
-            # OPT: lemmatize (for NLTK pipeline) 
-                fields["text"] = [w.lemma_ for w in nlp(fields["text"])]
+                # remove punctuations
+                fields["text"] = fields["text"].translate(str.maketrans('', '', string.punctuation))
+                # OPT: lemmatize (for NLTK pipeline) 
+                fields["text"] = [w.lemma_ for w in nlp(fields["text"])] # THIS CAUSES EXTRA WHITE SPACES AROUND SPECIAL CHARACTERS
                 fields["text"] = " ".join(fields["text"])
-            
+
             # split article based on paragraphs into multiple entries in a new dictionary with their id: 1-1 (id=1, par=1) and so on. 
             custom_id = 1
             text_split = fields["text"].split('\n')
@@ -157,6 +159,7 @@ def preprocessing(path, pipeline):
                     new_id = fields["id"] + "-" + str(custom_id)
                     final_dictionary[new_id] = par
                     custom_id = int(custom_id) + 1 
+            
     return final_dictionary   
 
 """
@@ -198,6 +201,6 @@ def preprocess_multiple_files(path, subf, start, end, pipeline): # (str, str, in
 
 ############################################################################## EXECUTION
 
-preprocess_multiple_files(path, "AA", 0, 1, "rebel")
+preprocess_multiple_files(path, "AA", 0, 1, "nltk")
 
 
