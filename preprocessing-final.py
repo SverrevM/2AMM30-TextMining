@@ -142,8 +142,6 @@ def preprocessing(path, pipeline):
             fields["text"] = fields["text"].replace(u'\xa0', u' ')
             # expand contractions
             fields["text"] = expand_contractions(fields["text"], contraction_map)
-            # remove punctuation
-            fields["text"] = fields["text"].translate(str.maketrans('', '', string.punctuation))
 
             if pipeline == "nltk":
             # OPT: lemmatize (for NLTK pipeline) 
@@ -154,10 +152,11 @@ def preprocessing(path, pipeline):
             custom_id = 1
             text_split = fields["text"].split('\n')
             for par in text_split:
-                new_id = fields["id"] + "-" + str(custom_id)
-                final_dictionary[new_id] = par
-                custom_id = int(custom_id) + 1 
-
+                # keep only paragraphs that have more than one word
+                if len(par.split(" ")) > 1:
+                    new_id = fields["id"] + "-" + str(custom_id)
+                    final_dictionary[new_id] = par
+                    custom_id = int(custom_id) + 1 
     return final_dictionary   
 
 """
@@ -192,9 +191,8 @@ def preprocess_multiple_files(path, subf, start, end, pipeline): # (str, str, in
         if isfile(f):
             # process it
             p = preprocessing(f, pipeline)
-            #TODO: FIX WHY SPECIAL ENCODINGS ARE NOT FIXED WHEN STORING
             # create a new file in the preprocessed folder, and put it into the concerning subfolder (AA or AB)
-            with open("preprocessed-{pipeline}/{subf}/p_{p}_wiki_{nr}".format(subf=subf, nr=i, pipeline=pipeline, p=pipeline[0]), 'w') as preprocessed_file:
+            with open("preprocessed-{pipeline}/{subf}/p_{p}_wiki_{nr}".format(subf=subf, nr=i, pipeline=pipeline, p=pipeline[0]), 'w', encoding='utf-8') as preprocessed_file:
                 preprocessed_file.write(json.dumps(p))
             preprocessed_file.close()
 
