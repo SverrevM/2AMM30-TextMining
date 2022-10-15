@@ -170,14 +170,14 @@ def rel_extraction_mul_files(path, subf=None, start=None, end=None):
             
             # if file exists
             if isfile(f):
-                # OPEN FILE, GO THROUGH EACH SEN AND PASS THAT INTO COREF FUNCTION
+                # OPEN FILE, GO THROUGH EACH PAR AND PASS THAT INTO COREF FUNCTION
                 file = open(f, 'r', encoding='utf-8')
                 doc = json.load(file)
                 for k, v in doc.items():
                     v = ftfy.fix_text(v) # FIX ANY ENCODINGS
                     # if paragraph has more than one word
                     if len(v.split(" ")) > 1:
-                        coreff(doc[k])
+                        coreff(v)
                         #TODO: FORMAT OUTPUT -> KADIR
     else:
         for f in glob.glob('preprocessed-rebel/*/*'):
@@ -188,7 +188,7 @@ def rel_extraction_mul_files(path, subf=None, start=None, end=None):
                 v = ftfy.fix_text(v) # FIX ANY ENCODINGS
                 # if paragraph has more than one word
                 if len(v.split(" ")) > 1:
-                    coreff(doc[k])
+                    coreff(v)
                     #TODO: FORMAT OUTPUT -> KADIR
 ############################################################################ EXECUTION
 # OPT 1: SELECT SPECIFIC FILES TO FEED REBEL IN ONE PARTICULAR MAP / # OPT 2: FEED ALL FILES, in AA and AB BY ONLY KEEPING PATH IN THERE
