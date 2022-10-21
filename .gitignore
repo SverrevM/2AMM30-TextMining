@@ -3,6 +3,8 @@ preprocessed-rebel
 preprocessed-nltk
 models
 venv
+# Locally stored processed files
+local_storage/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
