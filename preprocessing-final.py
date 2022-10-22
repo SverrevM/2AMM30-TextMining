@@ -6,6 +6,7 @@ import string
 import json
 import re
 from os.path import isfile
+from spacy import Language, util
 ############################################################################### INITIALIZING VARIABLES
 path = "enwiki20220701-stripped/"
 # NOTES ON EN CORE WEB SM -> python -m spacy download en_core_web_sm
@@ -106,6 +107,12 @@ contraction_map={
     "you're": "you are",
     "you've": "you have",
 }
+
+#Initialize spacy coref pipe
+DEVICE = -1 # Number of the GPU, -1 if want to use CPU
+coref = spacy.load('en_core_web_sm', disable=['ner', 'tagger', 'parser', 'attribute_ruler', 'lemmatizer'])
+coref.add_pipe(
+    "xx_coref", config={"chunk_size": 2500, "chunk_overlap": 2, "device": DEVICE})
 ############################################################################### METHODS
 def expand_contractions(sent, mapping):
     #pattern for matching contraction with their expansions
@@ -132,6 +139,8 @@ def preprocessing(path, pipeline):
 
     for item in file:
         fields = json.loads(item)
+        if not "Computer Science" in fields["text"]:
+            continue  
         # get entity labels based on NER
         title_entity_labels = [ent.label_ for ent in ner(fields["title"]).ents]
 
@@ -144,9 +153,13 @@ def preprocessing(path, pipeline):
             # expand contractions
             fields["text"] = expand_contractions(fields["text"], contraction_map)
 
+            #Apply coreference to the whole article
+            text_temp = coref(fields["text"])._.resolved_text
+            fields["text"] = text_temp
+
             if pipeline == "nltk":
                 # remove punctuations
-                fields["text"] = fields["text"].translate(str.maketrans('', '', string.punctuation))
+                # fields["text"] = fields["text"].translate(str.maketrans('', '', string.punctuation))
                 # OPT: lemmatize (for NLTK pipeline) 
                 fields["text"] = [w.lemma_ for w in nlp(fields["text"])] # THIS CAUSES EXTRA WHITE SPACES AROUND SPECIAL CHARACTERS
                 fields["text"] = " ".join(fields["text"])
