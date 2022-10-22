@@ -139,6 +139,8 @@ def preprocessing(path, pipeline):
 
     for item in file:
         fields = json.loads(item)
+        if not "Computer Science" in fields["text"]:
+            continue  
         # get entity labels based on NER
         title_entity_labels = [ent.label_ for ent in ner(fields["title"]).ents]
 
@@ -157,7 +159,7 @@ def preprocessing(path, pipeline):
 
             if pipeline == "nltk":
                 # remove punctuations
-                fields["text"] = fields["text"].translate(str.maketrans('', '', string.punctuation))
+                # fields["text"] = fields["text"].translate(str.maketrans('', '', string.punctuation))
                 # OPT: lemmatize (for NLTK pipeline) 
                 fields["text"] = [w.lemma_ for w in nlp(fields["text"])] # THIS CAUSES EXTRA WHITE SPACES AROUND SPECIAL CHARACTERS
                 fields["text"] = " ".join(fields["text"])
