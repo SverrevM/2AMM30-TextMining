@@ -1,11 +1,14 @@
 # 2AMM30-TextMining
 Text Mining Course repository Group 10
 
-1. Create a virtual environment
-in terminal: python -m venv venv
-2. Install required packages
-in terminal: pip install -r requirements.txt
+1. Install required packages
+Run the command in Jupyter Notebook: pip install -r requirements.txt
 
-3. Preprocess data
-in terminal: python preprocessing-final.py
- 
+2. Preprocess data
+preprocessing_coref.ipynb
+
+3. REBEL relation extraction and evaluation
+rebel.ipynb
+
+4. NLTK relation extraction and evaluation
+nltk.ipynb
